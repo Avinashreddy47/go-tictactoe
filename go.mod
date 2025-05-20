@@ -1,3 +1,3 @@
 module github.com/Avinashreddy47/go-tictactoe
 
-go 1.22.4
+go 1.23
