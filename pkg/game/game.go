@@ -1,7 +1,9 @@
 package game
 
 import (
+	"encoding/json"
 	"math/rand"
+	"os"
 	"time"
 )
 
@@ -11,6 +13,7 @@ const (
 	SpeedIncreaseThreshold = 5   // Increase speed every 5 points
 	MaxSpeed               = 50  // Minimum delay between moves in milliseconds
 	InitialSpeed           = 200 // Initial delay between moves in milliseconds
+	HighScoreFile          = ".snake_highscore.json"
 )
 
 type Point struct {
@@ -22,6 +25,7 @@ type Game struct {
 	Food      Point
 	Direction string
 	Score     int
+	HighScore int
 	GameOver  bool
 	Speed     int // Current speed (delay in milliseconds)
 }
@@ -37,8 +41,26 @@ func NewGame() *Game {
 		Speed:     InitialSpeed,
 	}
 
+	game.loadHighScore()
 	game.generateFood()
 	return game
+}
+
+func (g *Game) loadHighScore() {
+	data, err := os.ReadFile(HighScoreFile)
+	if err != nil {
+		g.HighScore = 0
+		return
+	}
+	json.Unmarshal(data, &g.HighScore)
+}
+
+func (g *Game) saveHighScore() {
+	if g.Score > g.HighScore {
+		g.HighScore = g.Score
+		data, _ := json.Marshal(g.HighScore)
+		os.WriteFile(HighScoreFile, data, 0644)
+	}
 }
 
 func (g *Game) generateFood() {
@@ -80,6 +102,7 @@ func (g *Game) Move() {
 	// Check for collisions
 	if newHead.X < 0 || newHead.X >= Width || newHead.Y < 0 || newHead.Y >= Height {
 		g.GameOver = true
+		g.saveHighScore()
 		return
 	}
 
@@ -87,6 +110,7 @@ func (g *Game) Move() {
 	for _, p := range g.Snake {
 		if p.X == newHead.X && p.Y == newHead.Y {
 			g.GameOver = true
+			g.saveHighScore()
 			return
 		}
 	}

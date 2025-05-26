@@ -28,6 +28,15 @@ func (r *Renderer) ClearScreen() {
 	cmd.Run()
 }
 
+func (r *Renderer) getSpeedIndicator() string {
+	speed := float64(r.game.InitialSpeed-r.game.Speed) / float64(r.game.InitialSpeed-r.game.MaxSpeed)
+	level := int(speed * 5) // 5 levels of speed
+	if level > 5 {
+		level = 5
+	}
+	return "Speed: " + "★"*level + "☆"*(5-level)
+}
+
 func (r *Renderer) Draw() {
 	r.ClearScreen()
 
@@ -50,6 +59,8 @@ func (r *Renderer) Draw() {
 
 	// Draw board
 	fmt.Println("Score:", r.game.Score)
+	fmt.Println("High Score:", r.game.HighScore)
+	fmt.Println(r.getSpeedIndicator())
 	fmt.Println("Use W/A/S/D to move, Q to quit")
 	fmt.Println("┌" + "─" + "┐")
 	for _, row := range board {
