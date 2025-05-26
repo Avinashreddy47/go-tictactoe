@@ -2,8 +2,11 @@ package game
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"os"
+	"os/exec"
+	"runtime"
 	"time"
 )
 
@@ -14,6 +17,11 @@ const (
 	MaxSpeed               = 50  // Minimum delay between moves in milliseconds
 	InitialSpeed           = 200 // Initial delay between moves in milliseconds
 	HighScoreFile          = ".snake_highscore.json"
+
+	// Difficulty levels
+	Easy   = "easy"
+	Medium = "medium"
+	Hard   = "hard"
 )
 
 type Point struct {
@@ -21,29 +29,52 @@ type Point struct {
 }
 
 type Game struct {
-	Snake     []Point
-	Food      Point
-	Direction string
-	Score     int
-	HighScore int
-	GameOver  bool
-	Speed     int // Current speed (delay in milliseconds)
+	Snake      []Point
+	Food       Point
+	Direction  string
+	Score      int
+	HighScore  int
+	GameOver   bool
+	Speed      int // Current speed (delay in milliseconds)
+	Difficulty string
 }
 
-func NewGame() *Game {
+func NewGame(difficulty string) *Game {
 	rand.Seed(time.Now().UnixNano())
 
+	// Set initial speed based on difficulty
+	initialSpeed := InitialSpeed
+	switch difficulty {
+	case Easy:
+		initialSpeed = 250
+	case Medium:
+		initialSpeed = 200
+	case Hard:
+		initialSpeed = 150
+	}
+
 	game := &Game{
-		Snake:     []Point{{X: Width / 2, Y: Height / 2}},
-		Direction: "RIGHT",
-		Score:     0,
-		GameOver:  false,
-		Speed:     InitialSpeed,
+		Snake:      []Point{{X: Width / 2, Y: Height / 2}},
+		Direction:  "RIGHT",
+		Score:      0,
+		GameOver:   false,
+		Speed:      initialSpeed,
+		Difficulty: difficulty,
 	}
 
 	game.loadHighScore()
 	game.generateFood()
 	return game
+}
+
+func (g *Game) playSound(sound string) {
+	var cmd *exec.Cmd
+	if runtime.GOOS == "windows" {
+		cmd = exec.Command("powershell", "-c", fmt.Sprintf("(New-Object Media.SoundPlayer '%s').PlaySync()", sound))
+	} else {
+		cmd = exec.Command("afplay", sound)
+	}
+	cmd.Run()
 }
 
 func (g *Game) loadHighScore() {
@@ -102,6 +133,7 @@ func (g *Game) Move() {
 	// Check for collisions
 	if newHead.X < 0 || newHead.X >= Width || newHead.Y < 0 || newHead.Y >= Height {
 		g.GameOver = true
+		g.playSound("sounds/gameover.wav")
 		g.saveHighScore()
 		return
 	}
@@ -110,6 +142,7 @@ func (g *Game) Move() {
 	for _, p := range g.Snake {
 		if p.X == newHead.X && p.Y == newHead.Y {
 			g.GameOver = true
+			g.playSound("sounds/gameover.wav")
 			g.saveHighScore()
 			return
 		}
@@ -121,10 +154,18 @@ func (g *Game) Move() {
 	// Check if food is eaten
 	if newHead.X == g.Food.X && newHead.Y == g.Food.Y {
 		g.Score++
+		g.playSound("sounds/eat.wav")
 		g.generateFood()
-		// Increase speed every SpeedIncreaseThreshold points
+		// Increase speed based on difficulty
 		if g.Score%SpeedIncreaseThreshold == 0 && g.Speed > MaxSpeed {
-			g.Speed -= 30 // Decrease delay by 30ms
+			switch g.Difficulty {
+			case Easy:
+				g.Speed -= 20 // Slower speed increase
+			case Medium:
+				g.Speed -= 30 // Normal speed increase
+			case Hard:
+				g.Speed -= 40 // Faster speed increase
+			}
 		}
 	} else {
 		g.Snake = g.Snake[:len(g.Snake)-1]
