@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/Avinashreddy47/snake-game/pkg/game"
+	"github.com/Avinashreddy47/go-tictactoe/pkg/game"
 )
 
 type Renderer struct {
