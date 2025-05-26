@@ -2,10 +2,9 @@ package input
 
 import (
 	"bufio"
-	"fmt"
 	"log"
 	"os"
-	"strings"
+	"time"
 
 	"github.com/Avinashreddy47/go-tictactoe/pkg/game"
 )
@@ -19,51 +18,56 @@ func NewInputHandler(game *game.Game) *InputHandler {
 }
 
 func (h *InputHandler) HandleInput() bool {
+	// Set up non-blocking input
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Enter direction (W/A/S/D) or Q to quit: ")
-	input, err := reader.ReadString('\n')
-	if err != nil {
-		log.Printf("Error reading input: %v\n", err)
-		return false
-	}
-	input = strings.TrimSpace(strings.ToUpper(input))
+	ch := make(chan byte, 1)
 
-	log.Printf("Received input: %s\n", input)
+	go func() {
+		char, _ := reader.ReadByte()
+		ch <- char
+	}()
 
-	switch input {
-	case "W":
-		if h.game.Direction != "DOWN" {
-			h.game.Direction = "UP"
-			log.Println("Direction changed to UP")
-		} else {
-			log.Println("Cannot change direction to UP when moving DOWN")
+	// Wait for input with timeout
+	select {
+	case char := <-ch:
+		switch char {
+		case 'w', 'W':
+			if h.game.Direction != "DOWN" {
+				h.game.Direction = "UP"
+				log.Println("Direction changed to UP")
+			} else {
+				log.Println("Cannot change direction to UP when moving DOWN")
+			}
+		case 's', 'S':
+			if h.game.Direction != "UP" {
+				h.game.Direction = "DOWN"
+				log.Println("Direction changed to DOWN")
+			} else {
+				log.Println("Cannot change direction to DOWN when moving UP")
+			}
+		case 'a', 'A':
+			if h.game.Direction != "RIGHT" {
+				h.game.Direction = "LEFT"
+				log.Println("Direction changed to LEFT")
+			} else {
+				log.Println("Cannot change direction to LEFT when moving RIGHT")
+			}
+		case 'd', 'D':
+			if h.game.Direction != "LEFT" {
+				h.game.Direction = "RIGHT"
+				log.Println("Direction changed to RIGHT")
+			} else {
+				log.Println("Cannot change direction to RIGHT when moving LEFT")
+			}
+		case 'q', 'Q':
+			log.Println("Game quit")
+			return false
+		case 'p', 'P':
+			h.game.TogglePause()
 		}
-	case "S":
-		if h.game.Direction != "UP" {
-			h.game.Direction = "DOWN"
-			log.Println("Direction changed to DOWN")
-		} else {
-			log.Println("Cannot change direction to DOWN when moving UP")
-		}
-	case "A":
-		if h.game.Direction != "RIGHT" {
-			h.game.Direction = "LEFT"
-			log.Println("Direction changed to LEFT")
-		} else {
-			log.Println("Cannot change direction to LEFT when moving RIGHT")
-		}
-	case "D":
-		if h.game.Direction != "LEFT" {
-			h.game.Direction = "RIGHT"
-			log.Println("Direction changed to RIGHT")
-		} else {
-			log.Println("Cannot change direction to RIGHT when moving LEFT")
-		}
-	case "Q":
-		log.Println("Game quit")
-		return false
-	default:
-		log.Println("Invalid input")
+	case <-time.After(time.Duration(h.game.Speed) * time.Millisecond):
+		// No input received within timeout
 	}
+
 	return true
 }

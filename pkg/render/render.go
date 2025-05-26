@@ -54,14 +54,20 @@ func (r *Renderer) getSpeedIndicator() string {
 
 func (r *Renderer) getActiveEffects() string {
 	var effects []string
-	if r.game.hasEffect("speed") {
+	if r.game.HasEffect("speed") {
 		effects = append(effects, Blue+"⚡ SPEED"+Reset)
 	}
-	if r.game.hasEffect("slow") {
+	if r.game.HasEffect("slow") {
 		effects = append(effects, Purple+"🐌 SLOW"+Reset)
 	}
-	if r.game.hasEffect("doublePoints") {
+	if r.game.HasEffect("doublePoints") {
 		effects = append(effects, Yellow+"2× POINTS"+Reset)
+	}
+	if r.game.HasEffect("ghost") {
+		effects = append(effects, Cyan+"👻 GHOST"+Reset)
+	}
+	if r.game.HasEffect("invincible") {
+		effects = append(effects, Green+"🛡️ INVINCIBLE"+Reset)
 	}
 	if len(effects) > 0 {
 		return "Active Effects: " + strings.Join(effects, " | ")
@@ -86,6 +92,12 @@ func (r *Renderer) getFoodSymbol() string {
 		return Yellow + "2×" + Reset
 	case game.ShrinkFood:
 		return Green + "↓" + Reset
+	case game.GhostFood:
+		return Cyan + "👻" + Reset
+	case game.InvincibleFood:
+		return Green + "🛡️" + Reset
+	case game.GrowthFood:
+		return Purple + "↑" + Reset
 	default:
 		return Red + "●" + Reset
 	}
@@ -132,8 +144,8 @@ func (r *Renderer) Draw() {
 			strings.Repeat(" ", 50-len(effects)) + Cyan + "║" + Reset)
 	}
 
-	fmt.Println(Cyan + "║" + Reset + " Use W/A/S/D to move, Q to quit" +
-		strings.Repeat(" ", 25) + Cyan + "║" + Reset)
+	fmt.Println(Cyan + "║" + Reset + " Use W/A/S/D to move, P to pause, Q to quit" +
+		strings.Repeat(" ", 20) + Cyan + "║" + Reset)
 	fmt.Println(Cyan + "╠════════════════════════════════════════════════════════════╣" + Reset)
 
 	// Draw board
@@ -147,6 +159,15 @@ func (r *Renderer) Draw() {
 	}
 	fmt.Println(Cyan + "║" + Reset + "└" + strings.Repeat("─", game.Width) + "┘" + Cyan + "║" + Reset)
 	fmt.Println(Cyan + "╚════════════════════════════════════════════════════════════╝" + Reset)
+
+	// Draw pause menu if game is paused
+	if r.game.Paused {
+		fmt.Println("\n" + Yellow + "╔════════════════════════════════════════════════════════════╗" + Reset)
+		fmt.Println(Yellow + "║" + Reset + "                        PAUSED                         " + Yellow + "║" + Reset)
+		fmt.Println(Yellow + "║" + Reset + " Press P to resume                                    " + Yellow + "║" + Reset)
+		fmt.Println(Yellow + "║" + Reset + " Press Q to quit                                      " + Yellow + "║" + Reset)
+		fmt.Println(Yellow + "╚════════════════════════════════════════════════════════════╝" + Reset)
+	}
 }
 
 func (r *Renderer) FlashFood() {
