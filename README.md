@@ -1,57 +1,73 @@
-# Go Tic Tac Toe
+# Go Snake Game
 
-A simple command-line Tic Tac Toe game implemented in Go.
+A simple command-line Snake game implemented in Go.
 
 ## Description
 
-This is a two-player Tic Tac Toe game that runs in the terminal. Players take turns placing their marks (X and O) on a 3x3 grid. The first player to get three of their marks in a row (horizontally, vertically, or diagonally) wins.
+This is a classic Snake game that runs in the terminal. Control the snake using W/A/S/D keys to eat food and grow longer. The game ends if the snake hits the wall or itself.
 
 ## Prerequisites
 
-- Go 1.16 or higher
+* Go 1.21 or higher
 
 ## Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/go-tictactoe.git
+git clone https://github.com/Avinashreddy47/go-tictactoe.git
 cd go-tictactoe
 ```
 
-2. Run the game:
+2. Build the game:
 ```bash
-go run tictactoe/main.go
+go build ./cmd/snake-game
+```
+
+3. Run the game:
+```bash
+./snake-game
 ```
 
 ## How to Play
 
-1. The game board is a 3x3 grid with coordinates:
-```
-  0 1 2
-0     
-1     
-2     
-```
+1. Use the following keys to control the snake:
+   - W: Move Up
+   - A: Move Left
+   - S: Move Down
+   - D: Move Right
+   - Q: Quit Game
 
-2. Players take turns entering their moves in the format "row column" (e.g., "1 1" for the center)
-3. Valid coordinates are 0-2 for both row and column
-4. The game alternates between players X and O
-5. The first player to get three marks in a row wins
-6. If the board fills up with no winner, the game ends in a tie
-
-## Example Moves
-
-- "0 0" - Top-left corner
-- "1 1" - Center
-- "2 2" - Bottom-right corner
+2. Game Rules:
+   - Eat the food (●) to grow longer
+   - Avoid hitting the walls
+   - Avoid hitting yourself
+   - Try to get the highest score possible
 
 ## Features
 
-- Input validation
-- Clear board display
-- Win condition checking
-- Tie game detection
-- Alternating players
+* Simple terminal-based interface
+* Score tracking
+* Collision detection
+* Smooth controls
+* Clear visual feedback
+
+## Project Structure
+
+```
+.
+├── cmd/
+│   └── snake-game/
+│       └── main.go
+├── pkg/
+│   ├── game/
+│   │   └── game.go
+│   ├── input/
+│   │   └── input.go
+│   └── render/
+│       └── render.go
+├── go.mod
+└── README.md
+```
 
 ## License
 
