@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/Avinashreddy47/go-tictactoe/pkg/game"
 )
@@ -23,7 +24,8 @@ const (
 )
 
 type Renderer struct {
-	game *game.Game
+	game      *game.Game
+	flashTime time.Time
 }
 
 func NewRenderer(game *game.Game) *Renderer {
@@ -50,6 +52,45 @@ func (r *Renderer) getSpeedIndicator() string {
 	return Yellow + "Speed: " + strings.Repeat("★", level) + strings.Repeat("☆", 5-level) + Reset
 }
 
+func (r *Renderer) getActiveEffects() string {
+	var effects []string
+	if r.game.hasEffect("speed") {
+		effects = append(effects, Blue+"⚡ SPEED"+Reset)
+	}
+	if r.game.hasEffect("slow") {
+		effects = append(effects, Purple+"🐌 SLOW"+Reset)
+	}
+	if r.game.hasEffect("doublePoints") {
+		effects = append(effects, Yellow+"2× POINTS"+Reset)
+	}
+	if len(effects) > 0 {
+		return "Active Effects: " + strings.Join(effects, " | ")
+	}
+	return ""
+}
+
+func (r *Renderer) getFoodSymbol() string {
+	// Flash effect when food is eaten
+	if time.Since(r.flashTime) < 200*time.Millisecond {
+		return "✨"
+	}
+
+	switch r.game.Food.Type {
+	case game.NormalFood:
+		return Red + "●" + Reset
+	case game.SpeedFood:
+		return Blue + "⚡" + Reset
+	case game.SlowFood:
+		return Purple + "🐌" + Reset
+	case game.DoublePointsFood:
+		return Yellow + "2×" + Reset
+	case game.ShrinkFood:
+		return Green + "↓" + Reset
+	default:
+		return Red + "●" + Reset
+	}
+}
+
 func (r *Renderer) Draw() {
 	r.ClearScreen()
 
@@ -72,7 +113,7 @@ func (r *Renderer) Draw() {
 	}
 
 	// Place food
-	board[r.game.Food.Y][r.game.Food.X] = Red + "●" + Reset
+	board[r.game.Food.Y][r.game.Food.X] = r.getFoodSymbol()
 
 	// Draw header
 	fmt.Println(Cyan + "╔════════════════════════════════════════════════════════════╗" + Reset)
@@ -83,6 +124,14 @@ func (r *Renderer) Draw() {
 		strings.Repeat(" ", 20) + Cyan + "║" + Reset)
 	fmt.Println(Cyan + "║" + Reset + " " + r.getSpeedIndicator() +
 		strings.Repeat(" ", 35) + Cyan + "║" + Reset)
+
+	// Draw active effects
+	effects := r.getActiveEffects()
+	if effects != "" {
+		fmt.Println(Cyan + "║" + Reset + " " + effects +
+			strings.Repeat(" ", 50-len(effects)) + Cyan + "║" + Reset)
+	}
+
 	fmt.Println(Cyan + "║" + Reset + " Use W/A/S/D to move, Q to quit" +
 		strings.Repeat(" ", 25) + Cyan + "║" + Reset)
 	fmt.Println(Cyan + "╠════════════════════════════════════════════════════════════╣" + Reset)
@@ -98,4 +147,8 @@ func (r *Renderer) Draw() {
 	}
 	fmt.Println(Cyan + "║" + Reset + "└" + strings.Repeat("─", game.Width) + "┘" + Cyan + "║" + Reset)
 	fmt.Println(Cyan + "╚════════════════════════════════════════════════════════════╝" + Reset)
+}
+
+func (r *Renderer) FlashFood() {
+	r.flashTime = time.Now()
 }
