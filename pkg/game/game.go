@@ -6,8 +6,11 @@ import (
 )
 
 const (
-	Width  = 20
-	Height = 10
+	Width                  = 20
+	Height                 = 10
+	SpeedIncreaseThreshold = 5   // Increase speed every 5 points
+	MaxSpeed               = 50  // Minimum delay between moves in milliseconds
+	InitialSpeed           = 200 // Initial delay between moves in milliseconds
 )
 
 type Point struct {
@@ -20,6 +23,7 @@ type Game struct {
 	Direction string
 	Score     int
 	GameOver  bool
+	Speed     int // Current speed (delay in milliseconds)
 }
 
 func NewGame() *Game {
@@ -30,6 +34,7 @@ func NewGame() *Game {
 		Direction: "RIGHT",
 		Score:     0,
 		GameOver:  false,
+		Speed:     InitialSpeed,
 	}
 
 	game.generateFood()
@@ -93,6 +98,10 @@ func (g *Game) Move() {
 	if newHead.X == g.Food.X && newHead.Y == g.Food.Y {
 		g.Score++
 		g.generateFood()
+		// Increase speed every SpeedIncreaseThreshold points
+		if g.Score%SpeedIncreaseThreshold == 0 && g.Speed > MaxSpeed {
+			g.Speed -= 30 // Decrease delay by 30ms
+		}
 	} else {
 		g.Snake = g.Snake[:len(g.Snake)-1]
 	}
